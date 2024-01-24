@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config3" doc:name="HTTP Listener config" doc:id="4105e870-8a0a-4cf5-acf5-8b31ab225322" >
+		<http:listener-connection host="0.0.0.0" port="8083" />
+	</http:listener-config>
+	<flow name="scenario3Flow" doc:id="b1270b06-70f5-46ea-90fa-01b1dbbac984" >
+		<http:listener doc:name="Listener" doc:id="122e3ca8-ddfb-44c1-8473-34ec3c8939a9" config-ref="HTTP_Listener_config" path="/scenario3"/>
+		<try doc:name="Try" doc:id="d907d976-b13b-4d7e-bd3c-bb11d72f2da1" >
+			<validation:is-null doc:name="Is null" doc:id="5c41a4dd-b035-4c5f-b2f1-06dc90ab22ea" value="#[payload]" />
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e35c0daa-a9c2-4b87-943b-1db7784ffdd0" >
+					<set-payload value='#["Error1"]' doc:name="Error1" doc:id="0aecbbff-6e78-447e-9845-fcf939535c22" />
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<set-payload value='#["End"]' doc:name="End" doc:id="454c11e3-146c-4b54-b8ad-d5a05e13cd95" />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="4b53ad53-6423-4cb3-b413-d3aa1269bd57" >
+				<set-payload value='#["Error2"]' doc:name="Error2" doc:id="be17f7a7-fb0f-4849-8e29-87b14e1623c7" />
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

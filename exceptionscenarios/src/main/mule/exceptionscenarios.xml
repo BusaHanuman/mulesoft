@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<validation:config name="Validation_Config" doc:name="Validation Config" doc:id="d13e7ded-b5cb-44af-ad89-7e497cc43983" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="7c5b8dc2-0581-4481-a3f4-b24e35c48170" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="exceptionscenariosFlow" doc:id="9c76ae23-a2f3-4530-bb46-955155735285" >
+		<http:listener doc:name="Listener" doc:id="abfe8608-d6b0-491d-8d8c-31ffcd69fb0e" config-ref="HTTP_Listener_config" path="/scenario1"/>
+		<logger level="INFO" doc:name="Logger" doc:id="292b9e17-dc25-4eee-a3a0-792599f8b057" />
+		<try doc:name="Try" doc:id="09473970-033b-4e62-935f-81f2d1256493" >
+			<validation:is-null doc:name="Is null" doc:id="a161cab9-1660-4463-9a86-b61e61563bd0" config-ref="Validation_Config" value="#[payload]"/>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b7f03174-c897-4dba-8513-7ec03fba555d" >
+					<set-payload value='#["Error1"]' doc:name="Error1" doc:id="5425a16c-04d3-4584-9d34-8fa59ecfa834" />
+				</on-error-propagate>
+			</error-handler>
+		</try>
+		<set-payload value='#["End"]' doc:name="End" doc:id="b5d77c76-c50b-4b61-9681-b62895089d27" />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="5741a13d-9ac4-4434-8c8e-ede84b171261" >
+				<set-payload value='#["Error2"]' doc:name="Error2" doc:id="c6836656-ac2e-4822-b824-dd90835263f3" />
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

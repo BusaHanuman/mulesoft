@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<http:listener-config name="HTTP_Listener_config1" doc:name="HTTP Listener config" doc:id="54bc0d72-30c2-4959-9da9-0c43ed6fd44a" >
+		<http:listener-connection host="0.0.0.0" port="8084" />
+	</http:listener-config>
+	<validation:config name="Validation_Config2" doc:name="Validation Config" doc:id="3f4e16a7-b483-4475-a45a-b3d5a512f851" />
+	<flow name="scenario4Flow" doc:id="3b0a235b-8923-4995-a3d0-c4f91ba79d54" >
+		<http:listener doc:name="Listener" doc:id="d76ac61c-ff9f-4499-8544-fcc117c41b48" config-ref="HTTP_Listener_config" path="/scenario4">
+		</http:listener>
+		<flow-ref doc:name="Flow Reference" doc:id="762f2533-efd8-43f7-86e8-df9ef8b37d16" name="private"/>
+		<set-payload value='#["Success main flow"]' doc:name="success main flow" doc:id="9007668c-2656-4b4b-8042-015513e2a32d" />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="822fde82-7590-4423-9f9f-3bd33c46df2f" >
+				<set-payload value='#["Error occurred in main flow"]' doc:name="Error main flow" doc:id="bb1de0fd-7850-4a49-af8f-f21ffa6b7706" />
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="private" doc:id="9f0bc24f-1c7b-43d0-9f57-a93638bea7e7" >
+		<validation:is-number doc:name="Is number" doc:id="bd896ab9-5224-4a47-8b3e-10882cd09ab9" value="#[payload]" numberType="INTEGER"/>
+		<error-handler>
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="9e653c4c-395c-4148-99e5-1a0be1762246" >
+				<set-payload value='#["Error occurred in private flow"]' doc:name="Error private flow" doc:id="a7be62b7-2126-4acc-809a-2adf7d676ce3" />
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

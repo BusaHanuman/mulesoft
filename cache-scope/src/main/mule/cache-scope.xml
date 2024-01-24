@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c4b57c0e-5369-4fac-87d0-c267cae3cb8a" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="62562c3b-31fc-47d6-9b18-42b08c4f9343" >
+		<db:my-sql-connection host="database-2.cbl8pzmaqnxf.eu-north-1.rds.amazonaws.com" port="3306" user="admin" password="12345678" database="practice_db" />
+	</db:config>
+	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="cea658e4-4988-4b96-a181-8e320b24d377" />
+	<ee:object-store-caching-strategy name="Caching_Strategy" doc:name="Caching Strategy" doc:id="46d8c0ca-4aa7-4977-bb07-61084b34debd" keyGenerationExpression="#[vars.id]" >
+		<os:private-object-store maxEntries="10000" entryTtl="24" entryTtlUnit="HOURS" expirationInterval="10" config-ref="ObjectStore_Config" />
+	</ee:object-store-caching-strategy>
+	<configuration doc:name="Configuration" doc:id="bc13e1b9-af1b-4b60-8630-b23111147a59" defaultErrorHandler-ref="handling-global-errorsError_Handler" />
+	<flow name="cache-scopeFlow" doc:id="1a9f2764-da6d-46a7-9301-f5121cf39d68" >
+		<http:listener doc:name="Listener" doc:id="2fd262c4-e3ec-4f12-a40c-12da4dd0c417" config-ref="HTTP_Listener_config" path="/cache">
+			<http:error-response statusCode="#[vars.httpstatus]" reasonPhrase="#[vars.httpmessage]">
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="3953e05c-ba8f-487a-92f1-48484d429224" message="Request received"/>
+		<set-variable value="#[attributes.queryParams.customerId]" doc:name="Set Variable" doc:id="d4f048d4-f1ff-43b4-83b1-bc32c335a516" variableName="id"/>
+		<ee:cache doc:name="Cache" doc:id="80218f2a-8a5e-45e9-a76b-7f50d8fc122e" cachingStrategy-ref="Caching_Strategy" >
+			<logger level="INFO" doc:name="Logger" doc:id="9fd06123-40de-4697-b9b1-031051541603" message="Database request started" />
+			<db:select doc:name="Select" doc:id="6358aa9a-13c2-49f4-9096-b50132ea3d0e" config-ref="Database_Config" >
+				<db:sql ><![CDATA[select * from customer_tbl where id = :id]]></db:sql>
+				<db:input-parameters ><![CDATA[#[{
+	id:vars.id
+}]]]></db:input-parameters>
+			</db:select>
+			<logger level="INFO" doc:name="Logger1" doc:id="dc10e02f-f29a-46e5-84ca-b4aa6a769e25" message="After Database call" />
+		</ee:cache>
+		<choice doc:name="Choice" doc:id="fe9fde5a-e5b9-4144-b24b-2e29d6d10f22" >
+			<when expression="#[sizeOf(payload)&gt;0]">
+				<ee:transform doc:name="Transform Message" doc:id="7d9c551d-0677-4358-98dc-8977fb513e34">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+---
+{
+	customer:payload
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="4c1ca6cb-c4ec-429f-b6a2-c732e7541f33" >
+					<ee:message >
+						<ee:set-payload ><![CDATA["The requested customer info is not available in the database"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<error-handler name="handling-global-errorsError_Handler" doc:id="f09fbca8-25c0-4197-b0c5-9e7dce27ce96" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate_DB_CONNECTION" doc:id="623ad823-4797-4f0f-85e1-545fbecc21c2" type="DB:CONNECTIVITY">
+			<set-variable value="503" doc:name="http status" doc:id="f506641f-56c7-4e87-8e39-aed1f6583554" variableName="httpstatus"/>
+			<set-variable value='#["Database Connection Failed"]' doc:name="http message" doc:id="c13eb694-bbc2-4926-a8e7-22cb7b6fe604" variableName="httpmessage"/>
+			<ee:transform doc:name="Final Message" doc:id="ec4e92b5-e3c7-4788-8ab2-1a034e6921f1" >
+				<ee:message >
+					<ee:set-payload ><![CDATA["Due to some technical issues we are unable to process your request, please try again later"]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate_Syntax_Error" doc:id="6c3f23a0-2350-4796-9570-558f80523279" type="DB:BAD_SQL_SYNTAX">
+			<set-variable value="#[502]" doc:name="http status" doc:id="43100275-7978-4c0c-9833-438f664c860d" variableName="httpstatus"/>
+			<set-variable value='#["Bad Syntax"]' doc:name="http message" doc:id="ced7dedb-9d49-400a-8049-8494d3c96f8e" variableName="httpmessage"/>
+			<ee:transform doc:name="Final Message" doc:id="4f62e172-75c1-4c78-badc-ddbf721623c5" >
+				<ee:message >
+					<ee:set-payload ><![CDATA["Bad SQL Syntax, check the query once"]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate_any" doc:id="e965c43d-2570-4478-af28-c7c66fca4156" type="ANY">
+			<ee:transform doc:name="Transform Message" doc:id="c23df0d5-b2a9-449d-adc4-c130af019229" >
+				<ee:message >
+					<ee:set-payload ><![CDATA["Error occurred"]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+</mule>
